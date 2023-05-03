@@ -4,6 +4,7 @@
     "declaration": true,
     "experimentalDecorators": true,
     "inlineSourceMap": true,
+    "outDir": "dist",
     "inlineSources": true,
     "module": "CommonJS",
     "noEmitOnError": true,
@@ -23,6 +24,6 @@
     "incremental": true,
     "skipLibCheck": true
   },
-  "include": ["**/*.ts"],
+  "include": ["src/*.ts"],
   "exclude": ["node_modules"]
 }

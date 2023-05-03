@@ -1,9 +1,4 @@
-import { RedAlert } from "./RedAlert";
+export { RedAlert } from "./RedAlert";
+import * as targets from "./assets/targets.json";
 
-async function main() {
-  const redAlert = await RedAlert.init();
-  const data = await redAlert.read();
-  console.log(data);
-}
-
-main();
+export { targets };

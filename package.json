@@ -1,11 +1,13 @@
 {
-  "name": "red-alert-scrapper",
-  "version": "1.0.0",
+  "name": "red-alert-scraper",
+  "version": "1.0.4",
   "description": "",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
     "start": "npx ts-node src/index.ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepublish": "npm run build"
   },
   "keywords": [],
   "author": "",

@@ -15,21 +15,48 @@ export interface Target {
   radius: number;
 }
 
+/**
+ * @example {
+    alertDate: '2023-05-02 06:36:50',
+    title: 'ירי רקטות וטילים',
+    data: 'סעד'
+  }
+ */
+export interface AlertHistoryAPI {
+  alertDate: string;
+  title: string;
+  data: string;
+}
+
+export interface AlertHistoryData {
+  alertDate: string;
+  title: string;
+  data: Target | { name: string };
+}
+
+/**
+ * @example {
+    "id": "133275210190000000",
+    "cat": "1",
+    "title": "ירי רקטות וטילים",
+    "data": [
+      "כיסופים"
+    ],
+    "desc": "היכנסו למרחב המוגן ושהו בו 10 דקות"
+}
+ */
 export interface AlertData {
-  cities_labels: Array<any>;
-  data: Array<any>;
-  id: number;
-  timestamp: number;
-  time_to_run: number;
-  category: number;
-  category_desc: string;
+  id: string;
+  cat: string;
+  title: string;
+  data: string[];
+  desc: string;
 }
 
 export interface AlertTarget {
   target: Target;
   category: "missile" | "infiltration" | string;
-  date: Date;
-  id: number;
+  id: string;
 }
 
 export class RedAlert {
@@ -77,6 +104,28 @@ export class RedAlert {
       });
   }
 
+  private async _getRedAlertsHistory(): Promise<AlertHistoryAPI[]> {
+    try {
+      const HOST =
+        "https://www.oref.org.il/WarningMessages/History/AlertsHistory.json";
+      const response = await axios.get(HOST, { headers: this.headers });
+
+      if (response.status !== 200) {
+        console.error("Failed to get red alerts");
+        return [];
+      }
+
+      if (typeof response.data === "object") {
+        return response.data;
+      }
+
+      return [];
+    } catch (error) {
+      console.error(error);
+      return [];
+    }
+  }
+
   private async _getRedAlerts(): Promise<AlertData | null> {
     try {
       const HOST = "https://www.oref.org.il/WarningMessages/alert/alerts.json";
@@ -86,10 +135,9 @@ export class RedAlert {
         console.error("Failed to get red alerts");
         return null;
       }
-
       return typeof response.data !== "string" &&
         JSON.stringify(response.data).length > 6
-        ? JSON.parse(response.data)
+        ? response.data
         : JSON.stringify(response.data).length <= 6
         ? null
         : response.data;
@@ -108,11 +156,7 @@ export class RedAlert {
     alertsData.data.forEach((alert: any) => {
       alerts.push({
         target: targets.find((target) => target.name === alert) as Target,
-        category: this._translateCategory(
-          alertsData.category,
-          alertsData.category_desc
-        ),
-        date: new Date(alertsData.timestamp),
+        category: this._translateCategory(alertsData.cat, alertsData.title),
         id: alertsData.id,
       });
     });
@@ -120,11 +164,31 @@ export class RedAlert {
     return alerts;
   }
 
-  private _translateCategory(cat: number, descr?: string) {
+  public async getToday(): Promise<AlertHistoryData[]> {
+    const alertsData = await this._getRedAlertsHistory();
+
+    if (!alertsData) return [];
+
+    const alerts: AlertHistoryData[] = [];
+    alertsData.forEach((alert) => {
+      const alertTargets = alert.data.split(',').map((target) => target.trim());
+      alertTargets.forEach((target) => {
+        alerts.push({
+          alertDate: alert.alertDate,
+          title: alert.title,
+          data: targets.find((t) => t.name === target) ?? targets.find((t) => t.name.includes(target)) ?? { name: target },
+        });
+      });
+    });
+
+    return alerts;
+  }
+
+  private _translateCategory(cat: string, descr?: string) {
     switch (cat) {
-      case 1:
+      case "1":
         return "missile";
-      case 2:
+      case "2":
         return "infiltration";
       default:
         return descr || "unknown";
