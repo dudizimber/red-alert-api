@@ -154,8 +154,13 @@ export class RedAlert {
 
     const alerts: AlertTarget[] = [];
     alertsData.data.forEach((alert: any) => {
+      const target = targets.find((target) => target.name === alert) as Target;
+      if (!target) {
+        console.error(`Unknown target: ${alert}`);
+        return;
+      }
       alerts.push({
-        target: targets.find((target) => target.name === alert) as Target,
+        target,
         category: this._translateCategory(alertsData.cat, alertsData.title),
         id: alertsData.id,
       });
@@ -171,12 +176,13 @@ export class RedAlert {
 
     const alerts: AlertHistoryData[] = [];
     alertsData.forEach((alert) => {
-      const alertTargets = alert.data.split(',').map((target) => target.trim());
+      const alertTargets = alert.data.split(",").map((target) => target.trim());
       alertTargets.forEach((target) => {
         alerts.push({
           alertDate: alert.alertDate,
           title: alert.title,
-          data: targets.find((t) => t.name === target) ?? targets.find((t) => t.name.includes(target)) ?? { name: target },
+          data: targets.find((t) => t.name === target) ??
+            targets.find((t) => t.name.includes(target)) ?? { name: target },
         });
       });
     });
